@@ -12,12 +12,12 @@ Orchard Core consists of two distinct projects:
 
 ## Build Status
 
-Stable (release/1.8.2): 
+Stable (`release/1.8.2`): 
 
 [![Build status](https://github.com/OrchardCMS/OrchardCore/actions/workflows/release_ci.yml/badge.svg)](https://github.com/OrchardCMS/OrchardCore/actions?query=workflow%3A%22Release+-+CI%22)
 [![NuGet](https://img.shields.io/nuget/v/OrchardCore.Application.Cms.Targets.svg)](https://www.nuget.org/packages/OrchardCore.Application.Cms.Targets)
 
-Nightly (main): 
+Nightly (`main`): 
 
 [![Build status](https://github.com/OrchardCMS/OrchardCore/actions/workflows/preview_ci.yml/badge.svg)](https://github.com/OrchardCMS/OrchardCore/actions?query=workflow%3A%22Preview+-+CI%22)
 [![Cloudsmith](https://api-prd.cloudsmith.io/badges/version/orchardcore/preview/nuget/OrchardCore.Application.Cms.Targets/latest/x/?render=true&badge_token=gAAAAABey9hKFD_C-ZIpLvayS3HDsIjIorQluDs53KjIdlxoDz6Ntt1TzvMNJp7a_UWvQbsfN5nS7_0IbxCyqHZsjhmZP6cBkKforo-NqwrH5-E6QCrJ3D8%3D)](https://cloudsmith.io/~orchardcore/repos/preview/packages/detail/nuget/OrchardCore.Application.Cms.Targets/latest/)
@@ -55,7 +55,7 @@ Do you need some help with Orchard Core? Don't worry, there are ways to get help
 
 - [X (Twitter)](https://twitter.com/orchardcms)
 - [LinkedIn](https://www.linkedin.com/groups/13605669/)
-- [Meta (Facebook)](https://www.facebook.com/groups/244928199422062/user/100063629920864)
+- [Meta (Facebook)](https://www.facebook.com/OrchardCore)
 
 ## Local Communities
 
@@ -81,6 +81,16 @@ First, clone the repository using the command `git clone https://github.com/Orch
 1. Download Visual Studio 2022 (v17.8+) from <https://www.visualstudio.com/downloads>.
 2. Launch the solution by clicking on `OrchardCore.sln`. Give Visual Studio time to restore all missing Nuget packages.
 3. Ensure `OrchardCore.Cms.Web` is set as the startup project. Then run the app.
+
+## Preview Package Feed
+
+[![Hosted By: Cloudsmith](https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=for-the-badge)](https://cloudsmith.com)
+
+NuGet package repository hosting for the preview feed is graciously provided by [Cloudsmith](https://cloudsmith.com).
+
+Cloudsmith is the only fully hosted, cloud-native, universal package management solution, that
+enables your organization to create, store, and share packages in any format, to any place, with total
+confidence.
 
 ## Code of Conduct
 
