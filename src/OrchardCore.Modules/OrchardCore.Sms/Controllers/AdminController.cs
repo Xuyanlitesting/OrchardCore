@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -14,42 +16,48 @@ namespace OrchardCore.Sms.Controllers;
 
 public class AdminController : Controller
 {
-    private readonly SmsProviderOptions _smsProviderOptions;
-    private readonly IPhoneFormatValidator _phoneFormatValidator;
-    private readonly INotifier _notifier;
     private readonly IAuthorizationService _authorizationService;
+    private readonly INotifier _notifier;
+    private readonly SmsOptions _smsOptions;
+    private readonly SmsProviderOptions _providerOptions;
+    private readonly ISmsService _smsService;
     private readonly ISmsProviderResolver _smsProviderResolver;
 
     protected readonly IHtmlLocalizer H;
     protected readonly IStringLocalizer S;
 
     public AdminController(
-        IOptions<SmsProviderOptions> smsProviderOptions,
-        IPhoneFormatValidator phoneFormatValidator,
-        ISmsProviderResolver smsProviderResolver,
-        INotifier notifier,
         IAuthorizationService authorizationService,
+        INotifier notifier,
+        IOptions<SmsProviderOptions> providerOptions,
+        IOptions<SmsOptions> SmsOptions,
+        ISmsService SmsService,
+        ISmsProviderResolver SmsProviderResolver,
         IHtmlLocalizer<AdminController> htmlLocalizer,
         IStringLocalizer<AdminController> stringLocalizer)
     {
-        _smsProviderOptions = smsProviderOptions.Value;
-        _phoneFormatValidator = phoneFormatValidator;
-        _smsProviderResolver = smsProviderResolver;
-        _notifier = notifier;
         _authorizationService = authorizationService;
+        _notifier = notifier;
+        _smsOptions = SmsOptions.Value;
+        _providerOptions = providerOptions.Value;
+        _smsService = SmsService;
+        _smsProviderResolver = SmsProviderResolver;
         H = htmlLocalizer;
         S = stringLocalizer;
     }
 
-    [Admin("sms/test", "SmsProviderTest")]
+    [Admin("Sms/Test", "SmsTest")]
     public async Task<IActionResult> Test()
     {
-        if (!await _authorizationService.AuthorizeAsync(User, SmsPermissions.ManageSmsSettings))
+        if (!await _authorizationService.AuthorizeAsync(User, Permissions.ManageSmsSettings))
         {
             return Forbid();
         }
 
-        var model = new SmsTestViewModel();
+        var model = new SmsTestViewModel()
+        {
+            Provider = _smsOptions.DefaultProviderName,
+        };
 
         PopulateModel(model);
 
@@ -57,33 +65,24 @@ public class AdminController : Controller
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Test(SmsTestViewModel model)
     {
-        if (!await _authorizationService.AuthorizeAsync(User, SmsPermissions.ManageSmsSettings))
+        if (!await _authorizationService.AuthorizeAsync(User, Permissions.ManageSmsSettings))
         {
             return Forbid();
         }
 
         if (ModelState.IsValid)
         {
-            var provider = await _smsProviderResolver.GetAsync(model.Provider);
+            var message = new SmsMessage()
+            {
+                To = model.PhoneNumber,
+                Body = S["This is a test SMS message."]
+            };
 
-            if (provider is null)
+            try
             {
-                ModelState.AddModelError(nameof(model.Provider), S["Please select a valid provider."]);
-            }
-            else if (!_phoneFormatValidator.IsValid(model.PhoneNumber))
-            {
-                ModelState.AddModelError(nameof(model.PhoneNumber), S["Please provide a valid phone number."]);
-            }
-            else
-            {
-                var result = await provider.SendAsync(new SmsMessage()
-                {
-                    To = model.PhoneNumber,
-                    Body = S["This is a test SMS message."]
-                });
+                var result = await _smsService.SendAsync(message, model.Provider);
 
                 if (result.Succeeded)
                 {
@@ -96,6 +95,14 @@ public class AdminController : Controller
                     await _notifier.ErrorAsync(H["The test SMS message failed to send."]);
                 }
             }
+            catch (InvalidSmsProviderException)
+            {
+                ModelState.AddModelError(string.Empty, S["The selected provider is invalid or no longer enabled."]);
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, S["Unable to send the message using the selected provider."]);
+            }
         }
 
         PopulateModel(model);
@@ -103,12 +110,22 @@ public class AdminController : Controller
         return View(model);
     }
 
-    private void PopulateModel(SmsTestViewModel model)
+    private async void PopulateModel(SmsTestViewModel model)
     {
-        model.Providers = _smsProviderOptions.Providers
-            .Where(entry => entry.Value.IsEnabled)
-            .Select(entry => new SelectListItem(entry.Key, entry.Key))
-            .OrderBy(item => item.Text)
-            .ToArray();
+        var options = new List<SelectListItem>();
+
+        foreach (var entry in _providerOptions.Providers)
+        {
+            if (!entry.Value.IsEnabled)
+            {
+                continue;
+            }
+
+            var provider = await _smsProviderResolver.GetAsync(entry.Key);
+
+            options.Add(new SelectListItem(provider.DisplayName, entry.Key));
+        }
+
+        model.Providers = options.OrderBy(x => x.Text).ToArray();
     }
 }

@@ -10,16 +10,16 @@ namespace OrchardCore.Sms;
 public class AdminMenu : INavigationProvider
 {
     private static readonly RouteValueDictionary _routeValues = new()
-    {
-        { "area", "OrchardCore.Settings" },
-        { "groupId", SmsSettings.GroupId },
-    };
+        {
+            { "area", "OrchardCore.Settings" },
+            { "groupId", SmsSettings.GroupId },
+        };
 
     protected readonly IStringLocalizer S;
 
-    public AdminMenu(IStringLocalizer<AdminMenu> stringLocalizer)
+    public AdminMenu(IStringLocalizer<AdminMenu> localizer)
     {
-        S = stringLocalizer;
+        S = localizer;
     }
 
     public Task BuildNavigationAsync(string name, NavigationBuilder builder)
@@ -32,19 +32,19 @@ public class AdminMenu : INavigationProvider
         builder
             .Add(S["Configuration"], configuration => configuration
                 .Add(S["Settings"], settings => settings
-                    .Add(S["SMS"], S["SMS"].PrefixPosition(), sms => sms
-                        .AddClass("sms")
-                        .Id("sms")
-                        .Action("Index", "Admin", _routeValues)
-                        .Permission(SmsPermissions.ManageSmsSettings)
-                        .LocalNav()
+                   .Add(S["Email"], S["Sms"].PrefixPosition(), entry => entry
+                      .AddClass("sms")
+                      .Id("sms")
+                      .Action("Index", "Admin", _routeValues)
+                      .Permission(Permissions.ManageSmsSettings)
+                      .LocalNav()
                     )
-                    .Add(S["SMS Test"], S["SMS Test"].PrefixPosition(), sms => sms
-                        .AddClass("smstest")
-                        .Id("smstest")
-                        .Action(nameof(AdminController.Test), typeof(AdminController).ControllerName(), "OrchardCore.Sms")
-                        .Permission(SmsPermissions.ManageSmsSettings)
-                        .LocalNav()
+                   .Add(S["SMS Test"], S["SMS Test"].PrefixPosition(), entry => entry
+                      .AddClass("smstest")
+                      .Id("smstest")
+                      .Action(nameof(AdminController.Test), typeof(AdminController).ControllerName(), "OrchardCore.Sms")
+                      .Permission(Permissions.ManageSmsSettings)
+                      .LocalNav()
                     )
                 )
             );

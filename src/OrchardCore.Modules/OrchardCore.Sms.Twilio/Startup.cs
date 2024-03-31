@@ -4,12 +4,11 @@ using Microsoft.Extensions.Options;
 using OrchardCore.DisplayManagement.Handlers;
 using OrchardCore.Environment.Shell.Configuration;
 using OrchardCore.Settings;
-using OrchardCore.Sms.Azure.Drivers;
-using OrchardCore.Sms.Azure.Models;
-using OrchardCore.Sms.Azure.Services;
-using OrchardCore.Sms.Services;
+using OrchardCore.Sms.Twilio.Drivers;
+using OrchardCore.Sms.Twilio.Models;
+using OrchardCore.Sms.Twilio.Services;
 
-namespace OrchardCore.Sms.Azure;
+namespace OrchardCore.Sms.Twilio;
 
 public class Startup
 {
@@ -22,14 +21,14 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddTransient<IConfigureOptions<AzureSmsOptions>, AzureSmsOptionsConfiguration>();
+        services.AddTransient<IConfigureOptions<TwilioSmsOptions>, TwilioSmsOptionsConfiguration>();
 
-        services.AddSmsProviderOptionsConfiguration<AzureSmsProviderOptionsConfigurations>()
-            .AddScoped<IDisplayDriver<ISite>, AzureSmsSettingsDisplayDriver>();
+        services.AddSmsProviderOptionsConfiguration<TwilioSmsProviderOptionsConfigurations>()
+            .AddScoped<IDisplayDriver<ISite>, TwilioSmsSettingsDisplayDriver>();
 
-        services.Configure<DefaultAzureSmsOptions>(options =>
+        services.Configure<DefaultTwilioSmsOptions>(options =>
         {
-            _shellConfiguration.GetSection("OrchardCore_Sms_Azure").Bind(options);
+            _shellConfiguration.GetSection("OrchardCore_Sms_Twilio").Bind(options);
 
             options.IsEnabled = options.ConfigurationExists();
         });

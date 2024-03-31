@@ -1,6 +1,6 @@
-namespace OrchardCore.Sms.Azure.Models;
+namespace OrchardCore.Sms.Twilio.Models;
 
-public class AzureSettings
+public class TwilioSmsSettings
 {
     public bool IsEnabled { get; set; }
 

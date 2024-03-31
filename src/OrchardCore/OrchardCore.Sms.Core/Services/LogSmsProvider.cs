@@ -11,7 +11,7 @@ public class LogSmsProvider : ISmsProvider
     protected readonly IStringLocalizer S;
     private readonly ILogger _logger;
 
-    public LocalizedString Name => S["Log - writes messages to the logs"];
+    public LocalizedString DisplayName => S["Log - writes messages to the logs"];
 
     public LogSmsProvider(
         IStringLocalizer<LogSmsProvider> stringLocalizer,

@@ -7,20 +7,7 @@ using OrchardCore.Modules.Manifest;
 )]
 
 [assembly: Feature(
-    Name = "SMS",
-    Id = "OrchardCore.Sms",
-    Description = "Provides settings and services to send SMS messages.",
+    Name = "Azure SMS Provider",
+    Description = "Provides an SMS service provider leveraging Azure Communication Services (ACS)",
     Category = "SMS"
-)]
-
-[assembly: Feature(
-    Name = "SMS Notifications",
-    Id = "OrchardCore.Notifications.Sms",
-    Description = "Provides a way to send SMS notifications to users.",
-    Category = "Notifications",
-    Dependencies =
-    [
-        "OrchardCore.Notifications",
-        "OrchardCore.Sms",
-    ]
 )]

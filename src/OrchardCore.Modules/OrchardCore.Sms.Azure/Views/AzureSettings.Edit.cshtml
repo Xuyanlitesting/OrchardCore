@@ -12,17 +12,10 @@
 </div>
 
 <div id="Azure_Provider_Settings" class="collapse @(Model.IsEnabled ? " show" : string.Empty)">
-
-    <h4>@T["Azure Account Info"]</h4>
-
     <div class="mb-3" asp-validation-class-for="ConnectionString">
         <label asp-for="ConnectionString" class="form-label">@T["Connection String"]</label>
-        <input asp-for="ConnectionString" class="form-control" />
+        <input type="text" asp-for="ConnectionString" class="form-control" placeholder="@(Model.HasConnectionString ? T["Connection string is securely stored. Leave blank for current connection string or enter a new one"] : T["Azure connection string"])" />
         <span asp-validation-for="ConnectionString"></span>
-        @if (Model.ConnectionString)
-        {
-            <span class="hint">@T["Connection String was securely saved. Enter a new value if you wish to replace the existing secret."]</span>
-        }
     </div>
 
     <div class="mb-3" asp-validation-class-for="PhoneNumber">
@@ -31,5 +24,4 @@
         <span asp-validation-for="PhoneNumber"></span>
         <span class="hint">@T["Phone number must include a country code. For example, +1 for United States."]</span>
     </div>
-
 </div>

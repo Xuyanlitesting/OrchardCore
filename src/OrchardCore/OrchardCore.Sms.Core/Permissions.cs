@@ -4,9 +4,9 @@ using OrchardCore.Security.Permissions;
 
 namespace OrchardCore.Sms;
 
-public class SmsPermissionProvider : IPermissionProvider
+public class Permissions : IPermissionProvider
 {
-    public static readonly Permission ManageSmsSettings = SmsPermissions.ManageSmsSettings;
+    public static readonly Permission ManageSmsSettings = new("ManageSmsSettings", "Manage SMS Settings");
 
     private readonly IEnumerable<Permission> _allPermissions =
     [

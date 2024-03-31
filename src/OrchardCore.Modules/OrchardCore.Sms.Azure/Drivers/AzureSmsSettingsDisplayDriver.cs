@@ -15,13 +15,14 @@ using OrchardCore.Entities;
 using OrchardCore.Environment.Shell;
 using OrchardCore.Mvc.ModelBinding;
 using OrchardCore.Settings;
-using OrchardCore.Sms.Models;
+using OrchardCore.Sms.Azure.Models;
+using OrchardCore.Sms.Azure.Services;
+using OrchardCore.Sms.Azure.ViewModels;
 using OrchardCore.Sms.Services;
-using OrchardCore.Sms.ViewModels;
 
-namespace OrchardCore.Sms.Drivers;
+namespace OrchardCore.Sms.Azure.Drivers;
 
-public class TwilioSettingsDisplayDriver : SectionDisplayDriver<ISite, TwilioSettings>
+public class AzureSmsSettingsDisplayDriver : SectionDisplayDriver<ISite, AzureSmsSettings>
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IAuthorizationService _authorizationService;
@@ -34,7 +35,7 @@ public class TwilioSettingsDisplayDriver : SectionDisplayDriver<ISite, TwilioSet
     protected readonly IHtmlLocalizer H;
     protected readonly IStringLocalizer S;
 
-    public TwilioSettingsDisplayDriver(
+    public AzureSmsSettingsDisplayDriver(
         IHttpContextAccessor httpContextAccessor,
         IAuthorizationService authorizationService,
         IPhoneFormatValidator phoneFormatValidator,
@@ -42,8 +43,8 @@ public class TwilioSettingsDisplayDriver : SectionDisplayDriver<ISite, TwilioSet
         IShellHost shellHost,
         ShellSettings shellSettings,
         INotifier notifier,
-        IHtmlLocalizer<TwilioSettingsDisplayDriver> htmlLocalizer,
-        IStringLocalizer<TwilioSettingsDisplayDriver> stringLocalizer)
+        IHtmlLocalizer<AzureSmsSettingsDisplayDriver> htmlLocalizer,
+        IStringLocalizer<AzureSmsSettingsDisplayDriver> stringLocalizer)
     {
         _httpContextAccessor = httpContextAccessor;
         _authorizationService = authorizationService;
@@ -56,30 +57,29 @@ public class TwilioSettingsDisplayDriver : SectionDisplayDriver<ISite, TwilioSet
         S = stringLocalizer;
     }
 
-    public override IDisplayResult Edit(TwilioSettings settings)
+    public override IDisplayResult Edit(AzureSmsSettings settings)
     {
-        return Initialize<TwilioSettingsViewModel>("TwilioSettings_Edit", model =>
+        return Initialize<AzureSettingsViewModel>("AzureSmsSettings_Edit", model =>
         {
             model.IsEnabled = settings.IsEnabled;
+            model.ConnectionString = settings.ConnectionString;
             model.PhoneNumber = settings.PhoneNumber;
-            model.AccountSID = settings.AccountSID;
-            model.HasAuthToken = !string.IsNullOrEmpty(settings.AuthToken);
-        }).Location("Content:5#Twilio")
-        .RenderWhen(() => _authorizationService.AuthorizeAsync(_httpContextAccessor.HttpContext?.User, SmsPermissions.ManageSmsSettings))
+        }).Location("Content:5#Azure")
+        .RenderWhen(() => _authorizationService.AuthorizeAsync(_httpContextAccessor.HttpContext?.User, Permissions.ManageSmsSettings))
         .OnGroup(SmsSettings.GroupId);
     }
 
-    public override async Task<IDisplayResult> UpdateAsync(ISite site, TwilioSettings settings, IUpdateModel updater, BuildEditorContext context)
+    public override async Task<IDisplayResult> UpdateAsync(ISite site, AzureSmsSettings settings, IUpdateModel updater, BuildEditorContext context)
     {
         var user = _httpContextAccessor.HttpContext?.User;
 
         if (!context.GroupId.Equals(SmsSettings.GroupId, StringComparison.OrdinalIgnoreCase)
-            || !await _authorizationService.AuthorizeAsync(user, SmsPermissions.ManageSmsSettings))
+            || !await _authorizationService.AuthorizeAsync(user, Permissions.ManageSmsSettings))
         {
             return null;
         }
 
-        var model = new TwilioSettingsViewModel();
+        var model = new AzureSettingsViewModel();
 
         if (await context.Updater.TryUpdateModelAsync(model, Prefix))
         {
@@ -89,7 +89,7 @@ public class TwilioSettingsDisplayDriver : SectionDisplayDriver<ISite, TwilioSet
             {
                 var smsSettings = site.As<SmsSettings>();
 
-                if (hasChanges && smsSettings.DefaultProviderName == TwilioSmsProvider.TechnicalName)
+                if (hasChanges && smsSettings.DefaultProviderName == AzureSmsProvider.TechnicalName)
                 {
                     await _notifier.WarningAsync(H["You have successfully disabled the default SMS provider. The SMS service is now disable and will remain disabled until you designate a new default provider."]);
 
@@ -104,6 +104,11 @@ public class TwilioSettingsDisplayDriver : SectionDisplayDriver<ISite, TwilioSet
             {
                 settings.IsEnabled = true;
 
+                if (string.IsNullOrWhiteSpace(model.ConnectionString))
+                {
+                    context.Updater.ModelState.AddModelError(Prefix, nameof(model.ConnectionString), S["ConnectionString requires a value."]);
+                }
+
                 if (string.IsNullOrWhiteSpace(model.PhoneNumber))
                 {
                     context.Updater.ModelState.AddModelError(Prefix, nameof(model.PhoneNumber), S["Phone number requires a value."]);
@@ -113,32 +118,21 @@ public class TwilioSettingsDisplayDriver : SectionDisplayDriver<ISite, TwilioSet
                     context.Updater.ModelState.AddModelError(Prefix, nameof(model.PhoneNumber), S["Please provide a valid phone number."]);
                 }
 
-                if (string.IsNullOrWhiteSpace(model.AccountSID))
-                {
-                    context.Updater.ModelState.AddModelError(Prefix, nameof(model.AccountSID), S["Account SID requires a value."]);
-                }
-
-                if (settings.AuthToken == null && string.IsNullOrWhiteSpace(model.AuthToken))
-                {
-                    context.Updater.ModelState.AddModelError(Prefix, nameof(model.AuthToken), S["Auth Token required a value."]);
-                }
-
                 // Has change should be evaluated before updating the value.
+                hasChanges |= settings.ConnectionString != model.ConnectionString;
                 hasChanges |= settings.PhoneNumber != model.PhoneNumber;
-                hasChanges |= settings.AccountSID != model.AccountSID;
 
-                settings.PhoneNumber = model.PhoneNumber;
-                settings.AccountSID = model.AccountSID;
-
-                if (!string.IsNullOrWhiteSpace(model.AuthToken))
+                if (!string.IsNullOrWhiteSpace(model.ConnectionString))
                 {
                     var protector = _dataProtectionProvider.CreateProtector(TwilioSmsProvider.ProtectorName);
 
-                    var protectedToken = protector.Protect(model.AuthToken);
-                    hasChanges |= settings.AuthToken != protectedToken;
+                    var protectedConnectionString = protector.Protect(model.ConnectionString);
+                    hasChanges |= settings.ConnectionString != protectedConnectionString;
 
-                    settings.AuthToken = protectedToken;
+                    settings.ConnectionString = protectedConnectionString;
                 }
+
+                settings.PhoneNumber = model.PhoneNumber;
             }
 
             if (context.Updater.ModelState.IsValid && hasChanges)

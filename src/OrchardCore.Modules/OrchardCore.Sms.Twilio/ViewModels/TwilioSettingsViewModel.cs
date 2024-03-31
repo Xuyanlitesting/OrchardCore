@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace OrchardCore.Sms.ViewModels;
 
-public class TwilioSettingsViewModel : SmsSettingsBaseViewModel
+public class TwilioSettingsViewModel 
 {
     public bool IsEnabled { get; set; }
 

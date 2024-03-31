@@ -3,24 +3,25 @@
 
 @model SmsTestViewModel
 
+<zone Name="Title"><h1>@RenderTitleSegments(T["Settings"])</h1></zone>
+
 @if (Model.Providers == null || Model.Providers.Count == 0)
 {
     <div class="alert alert-danger" role="alert">
-        @T["No SMS providers are available. Enable at least one SMS provider feature."]
+        @T["No SMS providers are currently enabled. Please enable at least one SMS provider feature."]
     </div>
 
     return;
 }
 
-<form method="post">
+<form method="post" class="no-multisubmit">
+    @Html.ValidationSummary()
 
-    <div class="@Orchard.GetWrapperClasses()">
-        <label asp-for="Provider" class="@Orchard.GetLabelClasses()">@T["Provider"]</label>
-        <div class="@Orchard.GetEndClasses()">
-            <select class="form-select" asp-for="Provider" asp-items="Model.Providers">
-                <option value="">@T["Select a provider"]</option>
-            </select>
-        </div>
+    <div class="mb-3">
+        <label asp-for="Provider" class="form-label">@T["Provider"]</label>
+        <select class="form-select" asp-for="Provider" asp-items="Model.Providers">
+            <option value="">@T["Select a provider"]</option>
+        </select>
     </div>
 
     <div class="@Orchard.GetWrapperClasses()" asp-validation-class-for="PhoneNumber">
@@ -31,10 +32,8 @@
         </div>
     </div>
 
-    <div class="@Orchard.GetWrapperClasses()">
-        <div class="@Orchard.GetEndClasses(true)">
-            <button type="submit" class="btn btn-primary">@T["Send"]</button>
-        </div>
+    <div class="mb-3">
+        <button type="submit" class="btn btn-primary">@T["Send"]</button>
     </div>
-
 </form>
+

@@ -6,9 +6,9 @@ namespace OrchardCore.Sms;
 public interface ISmsProvider
 {
     /// <summary>
-    /// The name of the provider.
+    /// The display name of the provider.
     /// </summary>
-    LocalizedString Name { get; }
+    LocalizedString DisplayName { get; }
 
     /// <summary>
     /// Send the given message.
