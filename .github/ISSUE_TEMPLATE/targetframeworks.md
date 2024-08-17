@@ -7,8 +7,6 @@ assignees: ''
 
 ---
 
-### Prepare the project
-
 - [ ] Update `global.json` to the required SDK version.
 Use the minimal SDK version required, the `rollForward` rule will pick the latest version available on the machine. It's up to the user to update their SDK to the version they want in case there is an update and we don't want to force them into a newer version in case they can't install it.
 - [ ] Update `src/OrchardCore.Build/TargetFrameworks.props`.
