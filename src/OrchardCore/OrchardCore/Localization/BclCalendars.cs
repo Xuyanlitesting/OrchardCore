@@ -70,10 +70,6 @@ internal static class BclCalendars
         {
             return CalendarSystem.Iso;
         }
-        else if (calendarType == typeof(HebrewCalendar))
-        {
-            return CalendarSystem.HebrewCivil;
-        }
         else if (calendarType == typeof(HijriCalendar))
         {
             return CalendarSystem.IslamicBcl;

@@ -34,14 +34,7 @@ public class NullHtmlLocalizer : IHtmlLocalizer
         {
             var translation = name;
 
-            if (arguments.Length == 1 && arguments[0] is PluralizationArgument pluralArgument)
-            {
-                translation = pluralArgument.Forms[_defaultPluralRule(pluralArgument.Count)];
-
-                arguments = new object[pluralArgument.Arguments.Length + 1];
-                arguments[0] = pluralArgument.Count;
-                Array.Copy(pluralArgument.Arguments, 0, arguments, 1, pluralArgument.Arguments.Length);
-            }
+            
 
             return new LocalizedHtmlString(name, translation, false, arguments);
         }

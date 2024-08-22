@@ -38,14 +38,7 @@ public class DefaultCalendarManager : ICalendarManager
             }
         }
 
-        if (calendarResults.Count == 0)
-        {
-            return CalendarName.Unknown;
-        }
-        else if (calendarResults.Count > 1)
-        {
-            calendarResults.Sort((x, y) => y.Priority.CompareTo(x.Priority));
-        }
+        
 
         _calendarName = await calendarResults.First().CalendarName();
 
